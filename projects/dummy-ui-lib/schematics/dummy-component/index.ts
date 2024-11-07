@@ -1,53 +1,30 @@
 import {
   Rule,
-  SchematicContext,
-  SchematicsException,
-  Tree,
+  apply,
+  applyTemplates,
+  url,
+  move,
+  mergeWith,
+  chain,
+  externalSchematic,
+  MergeStrategy,
 } from '@angular-devkit/schematics';
-import { NodePackageInstallTask } from '@angular-devkit/schematics/tasks';
-import { Observable } from 'rxjs';
-import { applyToUpdateRecorder } from '@schematics/angular/utility/change';
-import { addImportToModule } from '@schematics/angular/utility/ast-utils';
-import * as ts from 'typescript';
+import { strings, normalize } from '@angular-devkit/core';
+import { DummyComponentSchema } from './dummy-component';
 
-export function dummyComponentGenerator(): Rule {
-  return (
-    tree: Tree,
-    context: SchematicContext
-  ): Tree | Observable<Tree> | Rule | Promise<void | Rule> | void => {
-    context.logger.info('Adding Modules to the App');
-    const modulePath = '/src/app/app.module.ts';
-
-    if (!tree.exists(modulePath)) {
-      throw new SchematicsException(`The file ${modulePath} doesn't exists`);
-    }
-
-    const text = tree.read(modulePath);
-    if (text === null) {
-      throw new SchematicsException(`The file ${modulePath} doesn't exists`);
-    }
-
-    const sourceFile = ts.createSourceFile(
-      modulePath,
-      text.toString(),
-      ts.ScriptTarget.Latest,
-      true
-    );
-
-    const recorder = tree.beginUpdate(modulePath);
-    applyToUpdateRecorder(
-      recorder,
-      addImportToModule(
-        sourceFile,
-        modulePath,
-        'DummyUiLibModule',
-        'dummy-ui-lib'
-      )
-    );
-    tree.commitUpdate(recorder);
-
-    context.logger.info('Installing dependencies..');
-    context.addTask(new NodePackageInstallTask({}));
-    return tree;
+export function dummyComponentGenerator(options: DummyComponentSchema): Rule {
+  return () => {
+    const templateSrc = apply(url('./files'), [
+      applyTemplates({
+        classify: strings.classify,
+        dasherize: strings.dasherize,
+        name: options.name,
+      }),
+      move(normalize(`/${options.path}/${strings.dasherize(options.name)}`)),
+    ]);
+    return chain([
+      externalSchematic('@schematics/angular', 'component', options),
+      mergeWith(templateSrc, MergeStrategy.Overwrite),
+    ]);
   };
 }

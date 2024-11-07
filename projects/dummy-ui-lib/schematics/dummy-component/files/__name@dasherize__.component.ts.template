@@ -1,0 +1,10 @@
+import { Component, inject } from '@angular/core';
+import { DummyUiLibService } from 'dummy-ui-lib';
+
+@Component({
+  selector: '<%= dasherize(name) %>',
+  template: ` <p><%= dasherize(name) %></p> `,
+})
+export class <%= classify(name) %>Component {
+  constructor(private dummyUiLibService: DummyUiLibService) {}
+}
