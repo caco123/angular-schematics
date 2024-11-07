@@ -2,8 +2,14 @@
   "$schema": "../../../node_modules/@angular-devkit/schematics/collection-schema.json",
   "schematics": {
     "ng-add": {
-      "description": "Make Simple Dummy Schematic Collection",
+      "description": "This Schematic Add a DummyUiModule into de App Imports",
       "factory": "./ng-add/index#ngAdd"
+    },
+    "dummy-component": {
+      "description": "This Schematic Generates Dummy component",
+      "factory": "./dummy-component/index#dummyComponentGenerator",
+      "schema": "./dummy-component/schema.json",
+      "aliases": ["dc"]
     }
   }
 }
